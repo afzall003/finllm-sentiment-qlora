@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+checkpoints/
+data/splits/
+wandb/
+.ipynb_checkpoints/

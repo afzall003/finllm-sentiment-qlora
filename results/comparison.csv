@@ -1,0 +1,4 @@
+model,macro_f1,avg_latency_ms,p95_latency_ms,cost_per_1000_usd
+local,0.9722,349.3,392.3,0.0
+claude,0.9252,800.1,1003.8,0.2704
+gpt,0.9248,1031.1,1477.0,0.068

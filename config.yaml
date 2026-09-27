@@ -1,0 +1,55 @@
+# config.yaml
+# Central place for every hyperparameter, so train_qlora.py and eval_harness.py
+# both read the same source of truth instead of duplicating magic numbers.
+
+model:
+  base_model: "Qwen/Qwen2.5-7B-Instruct"
+  max_seq_length: 256          # sentiment task is short-form; keep this small to save VRAM
+
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: "bfloat16"
+
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+training:
+  output_dir: "./checkpoints/finllm-sentiment-qlora"
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8   # effective batch size 8, without needing more VRAM
+  num_train_epochs: 3
+  learning_rate: 2.0e-4
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.03
+  logging_steps: 10
+  save_strategy: "epoch"
+  eval_strategy: "epoch"
+  bf16: true
+  gradient_checkpointing: true     # trades speed for VRAM headroom, needed at 8GB
+  optim: "paged_adamw_8bit"        # paged optimizer avoids VRAM spikes on 8GB cards
+  report_to: "none"                # set to "none" if you skip experiment tracking
+
+data:
+  dataset_name: "financial_phrasebank"
+  dataset_config: "sentences_allagree"  # highest-agreement subset = cleanest labels
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+  seed: 42
+  labels: ["negative", "neutral", "positive"]
+
+huggingface:
+  hub_model_id: "afzal2003/finllm-sentiment-qlora"  # <-- change this
+  push_to_hub: true
+
+frontier_models:
+  openai_model: "gpt-6-luna"     # swap for whichever tier you want to benchmark
+  anthropic_model: "claude-haiku-4-5-20251001"
+  google_model: "gemini-3.8-flash"
